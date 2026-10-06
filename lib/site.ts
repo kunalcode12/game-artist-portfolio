@@ -11,7 +11,7 @@ export const site = {
   role: "3D Game Artist",
   tagline: "Hard Surface Props · Vehicles · Weapons",
   location: "Delhi, India",
-  email: "artspiration123@gmail.com",
+  email: "sohansingh76044@gmail.com",
   availability: "Available for opportunities",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? (vercelUrl ? `https://${vercelUrl}` : "http://localhost:3000"),
   artstation: "https://www.artstation.com/sohansingh",
