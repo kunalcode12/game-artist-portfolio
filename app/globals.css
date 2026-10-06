@@ -1,26 +1,480 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-bg: #060607;
+  --color-bg-2: #0a0a0c;
+  --color-panel: #0e0f11;
+  --color-panel-2: #131417;
+  --color-panel-3: #1a1b1f;
+  --color-line: rgb(255 255 255 / 0.075);
+  --color-line-2: rgb(255 255 255 / 0.14);
+  --color-ink: #f1f1f3;
+  --color-ink-2: #b8bbc3;
+  --color-mute: #868a94;
+  --color-dim: #7a7e88;
+  --color-accent: #ffa630;
+  --color-accent-2: #ff6b1a;
+  --color-accent-soft: rgb(255 166 48 / 0.12);
+  --color-axis-x: #ff5a5f;
+  --color-axis-y: #5ee88a;
+  --color-axis-z: #4f8dff;
+
+  --ease-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-swift: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --breakpoint-3xl: 1920px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-archivo), "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ───────────────────────── base ───────────────────────── */
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--color-bg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: #0b0b0b;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  img,
+  video,
+  canvas {
+    display: block;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  /* thin "engine" scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2b30 transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2b30;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* custom cursor hides the native one on fine pointers only */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+html.has-cursor input,
+html.has-cursor textarea,
+html.has-cursor [contenteditable="true"] {
+  cursor: text !important;
+}
+
+/* ───────────────────────── type ───────────────────────── */
+
+@layer components {
+  .display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-stretch: 78%;
+    font-variation-settings: "wdth" 78;
+    text-transform: uppercase;
+    line-height: 0.84;
+    letter-spacing: -0.012em;
+  }
+
+  .display-wide {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 100%;
+    font-variation-settings: "wdth" 100;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .label-sm {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* SplitChars: characters flip up out of their mask when the parent flips data-in */
+  .split-char {
+    display: inline-block;
+    transform-origin: bottom;
+    transform: translateY(105%) rotateX(-80deg);
+    opacity: 0;
+    transition:
+      transform 0.9s var(--ease-quint),
+      opacity 0.9s var(--ease-quint);
+  }
+  .split-chars[data-in="true"] .split-char {
+    transform: none;
+    opacity: 1;
+  }
+
+  .text-outline {
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(255 255 255 / 0.22);
+  }
+
+  .text-outline-strong {
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.5);
+  }
+
+  .text-gradient-accent {
+    background: linear-gradient(100deg, #ffc46b 0%, var(--color-accent) 40%, var(--color-accent-2) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* ───────────────────────── HUD primitives ───────────────────────── */
+
+@layer components {
+  /* four L-shaped corner brackets drawn with gradients — no extra DOM */
+  .hud-corners {
+    --c: var(--color-accent);
+    --s: 14px;
+    --t: 1px;
+    background:
+      linear-gradient(var(--c) 0 0) top left / var(--s) var(--t) no-repeat,
+      linear-gradient(var(--c) 0 0) top left / var(--t) var(--s) no-repeat,
+      linear-gradient(var(--c) 0 0) top right / var(--s) var(--t) no-repeat,
+      linear-gradient(var(--c) 0 0) top right / var(--t) var(--s) no-repeat,
+      linear-gradient(var(--c) 0 0) bottom left / var(--s) var(--t) no-repeat,
+      linear-gradient(var(--c) 0 0) bottom left / var(--t) var(--s) no-repeat,
+      linear-gradient(var(--c) 0 0) bottom right / var(--s) var(--t) no-repeat,
+      linear-gradient(var(--c) 0 0) bottom right / var(--t) var(--s) no-repeat;
+    pointer-events: none;
+  }
+
+  .chamfer {
+    --cut: 14px;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  }
+
+  .chamfer-sm {
+    --cut: 8px;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  }
+
+  .panel {
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.028), rgb(255 255 255 / 0.008)), var(--color-panel);
+    border: 1px solid var(--color-line);
+  }
+
+  .scanlines {
+    background: repeating-linear-gradient(to bottom, rgb(255 255 255 / 0.035) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+
+  .grid-floor {
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .dot-grid {
+    background-image: radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 1680px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 4.5rem);
+  }
+
+  .kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    padding: 0 0.3rem;
+    border: 1px solid var(--color-line-2);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--color-ink-2);
+    background: rgb(255 255 255 / 0.03);
+  }
+}
+
+/* film grain over everything — subtle, animated in steps so it reads as noise, not motion */
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.055;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: grain 1.2s steps(6) infinite;
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-4%, 3%); }
+  40% { transform: translate(3%, -5%); }
+  60% { transform: translate(-6%, -2%); }
+  80% { transform: translate(5%, 4%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ───────────────────────── CSS 3D wireframe cube ───────────────────────── */
+
+.cube {
+  --size: 14px;
+  --edge: var(--color-accent);
+  display: block;
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  transform-style: preserve-3d;
+  animation: cube-spin 6s linear infinite;
+}
+.cube > i {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--edge);
+  background: rgb(255 166 48 / 0.04);
+}
+.cube > i:nth-child(1) { transform: translateZ(calc(var(--size) / 2)); }
+.cube > i:nth-child(2) { transform: rotateY(180deg) translateZ(calc(var(--size) / 2)); }
+.cube > i:nth-child(3) { transform: rotateY(90deg) translateZ(calc(var(--size) / 2)); }
+.cube > i:nth-child(4) { transform: rotateY(-90deg) translateZ(calc(var(--size) / 2)); }
+.cube > i:nth-child(5) { transform: rotateX(90deg) translateZ(calc(var(--size) / 2)); }
+.cube > i:nth-child(6) { transform: rotateX(-90deg) translateZ(calc(var(--size) / 2)); }
+
+@keyframes cube-spin {
+  from { transform: rotateX(-24deg) rotateY(0deg); }
+  to { transform: rotateX(-24deg) rotateY(360deg); }
+}
+
+/* returning visitors (same tab session) never see the boot screen, even before hydration */
+html.booted .boot-loader {
+  display: none;
+}
+
+/* ───────────────────────── custom cursor ───────────────────────── */
+
+.cursor-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.cursor-root[data-visible="true"] {
+  opacity: 1;
+}
+.cursor-root[data-state="text"] {
+  opacity: 0 !important;
+}
+.cursor-dot {
+  position: fixed;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 1.5px rgb(0 0 0 / 0.55), 0 0 12px rgb(255 166 48 / 0.6);
+  will-change: transform;
+}
+.cursor-frame {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  will-change: transform, width, height;
+}
+.cursor-frame > .c {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 0 solid var(--color-accent);
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.8));
+  transition: width 0.3s var(--ease-quint), height 0.3s var(--ease-quint), translate 0.2s var(--ease-quint);
+}
+.cursor-frame > .tl { left: 0; top: 0; border-left-width: 1.5px; border-top-width: 1.5px; }
+.cursor-frame > .tr { right: 0; top: 0; border-right-width: 1.5px; border-top-width: 1.5px; }
+.cursor-frame > .bl { left: 0; bottom: 0; border-left-width: 1.5px; border-bottom-width: 1.5px; }
+.cursor-frame > .br { right: 0; bottom: 0; border-right-width: 1.5px; border-bottom-width: 1.5px; }
+.cursor-frame.is-down > .tl { translate: 3px 3px; }
+.cursor-frame.is-down > .tr { translate: -3px 3px; }
+.cursor-frame.is-down > .bl { translate: 3px -3px; }
+.cursor-frame.is-down > .br { translate: -3px -3px; }
+.cursor-root[data-state="view"] .cursor-frame > .c,
+.cursor-root[data-state="play"] .cursor-frame > .c {
+  width: 16px;
+  height: 16px;
+}
+.cursor-cube {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  perspective: 160px;
+  transition: scale 0.4s var(--ease-quint), opacity 0.25s ease;
+}
+.cursor-root[data-state="view"] .cursor-cube,
+.cursor-root[data-state="play"] .cursor-cube {
+  scale: 1.9;
+}
+.cursor-root[data-state="lock"] .cursor-cube,
+.cursor-root[data-state="drag"] .cursor-cube,
+.cursor-root[data-state="zoom"] .cursor-cube {
+  opacity: 0;
+  scale: 0.3;
+}
+.cursor-root[data-state="lock"] .cursor-dot {
+  scale: 0.6;
+}
+.cursor-root[data-state="scan"] .cursor-frame {
+  opacity: 0;
+}
+.cursor-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 9px);
+  translate: -50% 0;
+  padding: 4px 7px 3px;
+  background: var(--color-accent);
+  color: #111;
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.cursor-root[data-label="true"] .cursor-label {
+  opacity: 1;
+}
+
+/* [4] wireframe display mode: panels drop their fill like a viewport in wireframe shading */
+html.mode-wire .panel {
+  background: transparent;
+  border-style: dashed;
+  border-color: rgb(255 166 48 / 0.28);
+}
+
+/* ───────────────────────── misc keyframes ───────────────────────── */
+
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(255 166 48 / 0.55); }
+  50% { box-shadow: 0 0 0 6px rgb(255 166 48 / 0); }
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes scan-y {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes card-scan {
+  from { top: 0%; opacity: 1; }
+  to { top: 100%; opacity: 0.15; }
+}
+
+@keyframes slide-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes eq {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-out infinite;
+}
+
+.caret::after {
+  content: "_";
+  margin-left: 0.1em;
+  animation: blink 1s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain,
+  .cube,
+  .pulse-dot {
+    animation: none !important;
+  }
+  .split-char {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
 }

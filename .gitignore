@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw production assets (~660 MB of 4K renders and up-to-64 MB texture PNGs).
+# The site only serves the optimized copies in /public/media — regenerate them with `npm run media`.
+/public/assets/
